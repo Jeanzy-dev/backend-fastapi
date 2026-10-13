@@ -1,5 +1,6 @@
 from app.core.database import Database
 from app.models.usuario import Usuario
+from passlib.context import CryptContext
 
 class UsuarioRepository:
     def __init__(self):
@@ -22,13 +23,23 @@ class UsuarioRepository:
         return usuario
 
     def crear(self, usuario: Usuario):
+        contrasena_hasheada = pwd_context.hash(usuario.password_hash)
+
         conn = self.db.get_connection()
         cursor = conn.cursor()
         query = """
             INSERT INTO Usuario (id_perfil, nombre_completo, correo, password_hash, estado, creado, actualizado) 
             VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id_usuario;
         """
-        cursor.execute(query, (usuario.id_perfil, usuario.nombre_completo, usuario.correo, usuario.password_hash, usuario.estado))
+        
+        cursor.execute(query, (
+            usuario.id_perfil, 
+            usuario.nombre_completo, 
+            usuario.correo, 
+            contrasena_hasheada, 
+            usuario.estado
+        ))
+        
         nuevo_id = cursor.fetchone()['id_usuario']
         conn.commit()
         conn.close()
