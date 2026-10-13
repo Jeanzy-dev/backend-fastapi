@@ -11,7 +11,11 @@ class Database:
         self.database = os.getenv("DB_NAME")
         self.user = os.getenv("DB_USER")
         self.password = os.getenv("DB_PASSWORD")
+<<<<<<< HEAD
         self.port = os.getenv("DB_PORT", "5432")
+=======
+        self.port = os.getenv("DB_PORT")
+>>>>>>> 228d19d134f84dfa62c39841e25fd7c0e036e184
 
     def get_connection(self):
         try:
@@ -21,7 +25,10 @@ class Database:
                 user=self.user,
                 password=self.password,
                 port=self.port,
+<<<<<<< HEAD
                 sslmode="require",
+=======
+>>>>>>> 228d19d134f84dfa62c39841e25fd7c0e036e184
                 cursor_factory=RealDictCursor
             )
         except Exception as e:
