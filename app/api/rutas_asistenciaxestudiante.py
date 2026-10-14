@@ -13,24 +13,24 @@ def listar_asistencias():
 def obtener_asistencia(id_registro: int):
     registro = repo.obtener_por_id(id_registro)
     if not registro:
-        raise HTTPException(status_code=404, detail="Eche, esa asistencia no se encuentra o la borraron")
+        raise HTTPException(status_code=404, detail="Esa asistencia no se encuentra o la borraron")
     return registro
 
 @router.post("/")
 def crear_asistencia(registro: AsistenciaXEstudiante):
     nuevo_id = repo.crear(registro)
-    return {"mensaje": "Asistencia registrada del putas", "id": nuevo_id}
+    return {"mensaje": "Asistencia registrada", "id": nuevo_id}
 
 @router.put("/{id_registro}")
 def actualizar_asistencia(id_registro: int, registro: AsistenciaXEstudiante):
     exito = repo.actualizar(id_registro, registro)
     if not exito:
-        raise HTTPException(status_code=404, detail="Registro de asistencia no encontrado pa' actualizar")
-    return {"mensaje": "Asistencia actualizada bacano"}
+        raise HTTPException(status_code=404, detail="Registro de asistencia no encontrado para actualizar")
+    return {"mensaje": "Asistencia actualizada"}
 
 @router.delete("/{id_registro}")
 def eliminar_asistencia(id_registro: int):
     exito = repo.eliminar(id_registro)
     if not exito:
-        raise HTTPException(status_code=404, detail="No se pudo eliminar, el man no existe")
-    return {"mensaje": "Asistencia inactivada melo (borrado lógico aplicado)"}
+        raise HTTPException(status_code=404, detail="No se pudo eliminar, la asistencia no existe")
+    return {"mensaje": "Asistencia inactivada "}

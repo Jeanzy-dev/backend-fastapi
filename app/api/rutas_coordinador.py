@@ -33,4 +33,4 @@ def eliminar_coordinador(id_coordinador: int):
     exito = repo.eliminar(id_coordinador)
     if not exito:
         raise HTTPException(status_code=404, detail="No se pudo eliminar, el coordinador no existe")
-    return {"mensaje": "Coordinador inactivado correctamente (borrado lógico aplicado)"}
+    return {"mensaje": "Coordinador inactivado correctamente"}
