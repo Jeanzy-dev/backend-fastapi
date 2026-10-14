@@ -50,7 +50,6 @@ class ModuloxRolRepository:
         return actualizado is not None
 
     def eliminar(self, id_registro: int):
-        # BORRADO LÓGICO: Cambiamos estado a false y actualizamos la fecha
         conn = self.db.get_connection()
         cursor = conn.cursor()
         cursor.execute("UPDATE moduloxrol SET estado = false, actualizado = CURRENT_TIMESTAMP WHERE id = %s RETURNING id;", (id_registro,))
