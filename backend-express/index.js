@@ -24,7 +24,7 @@ const pool = mysql.createPool({
 app.get('/', (req, res) => {
     res.json({
         status: 'ok',
-        mensaje: 'API Auxiliar de Notificaciones (Node.js + Express + MySQL) activa y funcional'
+        mensaje: 'API Auxiliar de Notificaciones activa '
     });
 });
 
