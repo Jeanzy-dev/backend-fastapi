@@ -1,0 +1,9 @@
+fastapi[standard]
+uvicorn
+pydantic
+psycopg2-binary
+python-dotenv
+passlib[bcrypt]
+PyJWT
+mysql-connector-python
+pymysql
