@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.models.auth import LoginData, TokenResponse
-from app.repositories.auth_repo import AuthRepository
+from app.repositories.auth import AuthRepository
 
 router = APIRouter(prefix="/auth", tags=["Autenticación y Login"])
 repo = AuthRepository()
