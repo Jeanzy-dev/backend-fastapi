@@ -1,37 +1,36 @@
-from fastapi import APIRouter, HTTPException, status
-from typing import List
-from app.models.acudiente import AcudienteCrear, AcudienteRespuesta
+from fastapi import APIRouter, HTTPException
+from app.models.acudiente import Acudiente
 from app.repositories.acudiente_repo import AcudienteRepository
 
 router = APIRouter(prefix="/acudientes", tags=["Gestión de Acudientes"])
 repo = AcudienteRepository()
 
-@router.get("/", response_model=List[AcudienteRespuesta], summary="Listar acudientes activos")
+@router.get("/")
 def listar_acudientes():
     return repo.obtener_todos()
 
-@router.get("/{id_acudiente}", response_model=AcudienteRespuesta, summary="Obtener acudiente por ID")
-def obtener_acudiente(id_acudiente: int):
-    acudiente = repo.obtener_por_id(id_acudiente)
+@router.get("/{acudiente_id}")
+def obtener_acudiente(acudiente_id: int):
+    acudiente = repo.obtener_por_id(acudiente_id)
     if not acudiente:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Acudiente no encontrado o inactivo")
+        raise HTTPException(status_code=404, detail="Acudiente no encontrado")
     return acudiente
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="Crear acudiente")
-def crear_acudiente(acudiente: AcudienteCrear):
+@router.post("/")
+def crear_acudiente(acudiente: Acudiente):
     nuevo_id = repo.crear(acudiente)
-    return {"mensaje": "Acudiente registrado exitosamente", "id_acudiente": nuevo_id}
+    return {"mensaje": "Acudiente registrado exitosamente", "id": nuevo_id}
 
-@router.put("/{id_acudiente}", summary="Actualizar acudiente")
-def actualizar_acudiente(id_acudiente: int, acudiente: AcudienteCrear):
-    exito = repo.actualizar(id_acudiente, acudiente)
+@router.delete("/{acudiente_id}")
+def eliminar_acudiente(acudiente_id: int):
+    exito = repo.eliminar(acudiente_id)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Acudiente no encontrado o inactivo")
-    return {"mensaje": "Acudiente actualizado exitosamente"}
+        raise HTTPException(status_code=404, detail="Acudiente no encontrado")
+    return {"mensaje": "Acudiente eliminado correctamente"}
 
-@router.delete("/{id_acudiente}", summary="Eliminar acudiente (Lógico)")
-def eliminar_acudiente(id_acudiente: int):
-    exito = repo.eliminar_logico(id_acudiente)
+@router.put("/{acudiente_id}")
+def actualizar_acudiente(acudiente_id: int, acudiente: Acudiente):
+    exito = repo.actualizar(acudiente_id, acudiente)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Acudiente no encontrado o ya inactivo")
-    return {"mensaje": f"Acudiente con id {id_acudiente} desactivado exitosamente (Soft Delete)"}
+        raise HTTPException(status_code=404, detail="Acudiente no encontrado")
+    return {"mensaje": "Acudiente actualizado correctamente"}

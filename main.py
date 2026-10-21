@@ -12,16 +12,17 @@ from app.api import (
     rutas_estudxacudiente,
     rutas_coordinador,
     rutas_asistenciaxestudiante,
+    rutas_curso,
     rutas_registronotificaciones
-
 )
 
 app = FastAPI(
-    title="API - Sistema de Control de Llegadas Tarde",
-    description="Backend modular en FastAPI y PostgreSQL para gestión de asistencia escolar",
+    title="API de Gestión de llegadas tarde",
+    description="Backend modular para monitoreo académico usando FastAPI y PostgreSQL puro",
     version="1.0.0"
 )
 
+# Conectamos el módulo de rutas a la aplicación principal
 app.include_router(rutas_auth.router)
 app.include_router(rutas_perfil.router)
 app.include_router(rutas_modulos.router)
@@ -34,9 +35,9 @@ app.include_router(rutas_moduloxrol.router)
 app.include_router(rutas_estudxacudiente.router)
 app.include_router(rutas_coordinador.router)
 app.include_router(rutas_asistenciaxestudiante.router)
+app.include_router(rutas_curso.router)
 app.include_router(rutas_registronotificaciones.router)
 
-
-@app.get("/", tags=["default"], summary="Estado de la API")
-def estado():
-    return {"status": "ok", "mensaje": "API escolar activa y funcional"}
+@app.get("/")
+def estado_api():
+    return {"mensaje": "La API de monitoreo se encuentra en línea y funcional"}

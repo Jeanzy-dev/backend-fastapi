@@ -1,37 +1,36 @@
-from fastapi import APIRouter, HTTPException, status
-from typing import List
-from app.models.motivo import MotivoCrear, MotivoRespuesta
+from fastapi import APIRouter, HTTPException
+from app.models.motivo import MotivoTardanza
 from app.repositories.motivo_repo import MotivoRepository
 
-router = APIRouter(prefix="/motivos", tags=["Gestión de Motivos de Tardanza"])
+router = APIRouter(prefix="/motivos", tags=["Gestión de Motivos"])
 repo = MotivoRepository()
 
-@router.get("/", response_model=List[MotivoRespuesta], summary="Listar motivos activos")
+@router.get("/")
 def listar_motivos():
     return repo.obtener_todos()
 
-@router.get("/{id_motivo}", response_model=MotivoRespuesta, summary="Obtener motivo por ID")
-def obtener_motivo(id_motivo: int):
-    motivo = repo.obtener_por_id(id_motivo)
+@router.get("/{motivo_id}")
+def obtener_motivo(motivo_id: int):
+    motivo = repo.obtener_por_id(motivo_id)
     if not motivo:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Motivo no encontrado o inactivo")
+        raise HTTPException(status_code=404, detail="Motivo no encontrado")
     return motivo
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="Crear motivo")
-def crear_motivo(motivo: MotivoCrear):
+@router.post("/")
+def crear_motivo(motivo: MotivoTardanza):
     nuevo_id = repo.crear(motivo)
-    return {"mensaje": "Motivo creado exitosamente", "id_motivo": nuevo_id}
+    return {"mensaje": "Motivo registrado exitosamente", "id": nuevo_id}
 
-@router.put("/{id_motivo}", summary="Actualizar motivo")
-def actualizar_motivo(id_motivo: int, motivo: MotivoCrear):
-    exito = repo.actualizar(id_motivo, motivo)
+@router.delete("/{motivo_id}")
+def eliminar_motivo(motivo_id: int):
+    exito = repo.eliminar(motivo_id)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Motivo no encontrado o inactivo")
-    return {"mensaje": "Motivo actualizado exitosamente"}
+        raise HTTPException(status_code=404, detail="Motivo no encontrado")
+    return {"mensaje": "Motivo eliminado correctamente"}
 
-@router.delete("/{id_motivo}", summary="Eliminar motivo (Lógico)")
-def eliminar_motivo(id_motivo: int):
-    exito = repo.eliminar_logico(id_motivo)
+@router.put("/{motivo_id}")
+def actualizar_motivo(motivo_id: int, motivo: MotivoTardanza):
+    exito = repo.actualizar(motivo_id, motivo)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Motivo no encontrado o ya inactivo")
-    return {"mensaje": f"Motivo con id {id_motivo} desactivado exitosamente (Soft Delete)"}
+        raise HTTPException(status_code=404, detail="Motivo no encontrado")
+    return {"mensaje": "Motivo actualizado correctamente"}

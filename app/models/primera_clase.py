@@ -1,21 +1,13 @@
 from pydantic import BaseModel
-from datetime import time
 from typing import Optional
+from datetime import time
 
-class PrimeraClaseBase(BaseModel):
+class PrimeraClase(BaseModel):
+    id_clase_grupo: Optional[int] = None
     grado: int
     grupo: str
     jornada: str
     hora_inicio_timbre: time
     hora_cierre_porton: time
-    tolerancia_minutos: Optional[int] = 10
-
-class PrimeraClaseCrear(PrimeraClaseBase):
-    pass
-
-class PrimeraClaseRespuesta(PrimeraClaseBase):
-    id_clase_grupo: int
-    estado: bool
-
-    class Config:
-        from_attributes = True
+    tolerancia_minutos: Optional[int] = None
+    estado: Optional[bool] = True

@@ -1,37 +1,36 @@
-from fastapi import APIRouter, HTTPException, status
-from typing import List
-from app.models.modulo import ModuloCrear, ModuloRespuesta
+from fastapi import APIRouter, HTTPException
+from app.models.modulo import Modulo
 from app.repositories.modulo_repo import ModuloRepository
 
 router = APIRouter(prefix="/modulos", tags=["Gestión de Módulos"])
 repo = ModuloRepository()
 
-@router.get("/", response_model=List[ModuloRespuesta], summary="Listar módulos activos")
+@router.get("/")
 def listar_modulos():
     return repo.obtener_todos()
 
-@router.get("/{id_modulo}", response_model=ModuloRespuesta, summary="Obtener módulo por ID")
-def obtener_modulo(id_modulo: int):
-    modulo = repo.obtener_por_id(id_modulo)
+@router.get("/{modulo_id}")
+def obtener_modulo(modulo_id: int):
+    modulo = repo.obtener_por_id(modulo_id)
     if not modulo:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Módulo no encontrado o inactivo")
+        raise HTTPException(status_code=404, detail="Módulo no encontrado")
     return modulo
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="Crear nuevo módulo")
-def crear_modulo(modulo: ModuloCrear):
+@router.post("/")
+def crear_modulo(modulo: Modulo):
     nuevo_id = repo.crear(modulo)
-    return {"mensaje": "Módulo creado exitosamente", "id_modulo": nuevo_id}
+    return {"mensaje": "Módulo registrado exitosamente", "id": nuevo_id}
 
-@router.put("/{id_modulo}", summary="Actualizar módulo")
-def actualizar_modulo(id_modulo: int, modulo: ModuloCrear):
-    exito = repo.actualizar(id_modulo, modulo)
+@router.delete("/{modulo_id}")
+def eliminar_modulo(modulo_id: int):
+    exito = repo.eliminar(modulo_id)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Módulo no encontrado o inactivo")
-    return {"mensaje": "Módulo actualizado exitosamente"}
+        raise HTTPException(status_code=404, detail="Módulo no encontrado")
+    return {"mensaje": "Módulo eliminado correctamente"}
 
-@router.delete("/{id_modulo}", summary="Eliminar módulo (Lógico)")
-def eliminar_modulo(id_modulo: int):
-    exito = repo.eliminar_logico(id_modulo)
+@router.put("/{modulo_id}")
+def actualizar_modulo(modulo_id: int, modulo: Modulo):
+    exito = repo.actualizar(modulo_id, modulo)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Módulo no encontrado o ya inactivo")
-    return {"mensaje": f"Módulo con id {id_modulo} desactivado exitosamente (Soft Delete)"}
+        raise HTTPException(status_code=404, detail="Módulo no encontrado")
+    return {"mensaje": "Módulo actualizado correctamente"}
