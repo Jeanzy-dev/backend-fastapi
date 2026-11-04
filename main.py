@@ -49,3 +49,8 @@ app.include_router(router_reportes)
 @app.get("/")
 def estado_api():
     return {"mensaje": "La API de monitoreo se encuentra en línea y funcional"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+

@@ -38,5 +38,5 @@ def actualizar(id_registro: int, registro: AsistenciaXEstudiante):
 def eliminar(id_registro: int):
     exito = repo.eliminar(id_registro)
     if not exito:
-        raise HTTPException(status_code=404, detail="Registro de llegada tarde no encontrado")
-    return {"mensaje": "Llegada tarde eliminada"}
+        raise HTTPException(status_code=404, detail="No se pudo eliminar, la asistencia no existe")
+    return {"mensaje": "Asistencia inactivada "}

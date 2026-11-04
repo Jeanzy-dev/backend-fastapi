@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from app.core.security import verificar_token
-from app.models.auth import LoginData, TokenResponse
+from app.models.auth import LoginData
+from app.models.tokenresponse import TokenResponse
 from app.repositories.auth_repo import AuthRepository
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticación y Login"])
