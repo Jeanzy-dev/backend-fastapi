@@ -1,6 +1,4 @@
 .env
 myvenv/
 __pycache__/
-node_modules/
-backend-express/.env
-backend-express/node_modules/
+*.pyc
