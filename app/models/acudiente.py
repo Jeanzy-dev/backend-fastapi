@@ -1,18 +1,11 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from typing import Optional
 
-class AcudienteBase(BaseModel):
+class Acudiente(BaseModel):
+    id_acudiente: Optional[int] = None
     documento: str
     nombres: str
     apellidos: str
     telefono: str
     correo: str
-
-class AcudienteCrear(AcudienteBase):
-    pass
-
-class AcudienteRespuesta(AcudienteBase):
-    id_acudiente: int
-    estado: bool
-
-    class Config:
-        from_attributes = True
+    estado: Optional[bool] = True

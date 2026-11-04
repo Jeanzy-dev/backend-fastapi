@@ -1,95 +1,73 @@
 from app.core.database import Database
-from app.models.primera_clase import PrimeraClaseCrear
+from app.models.primera_clase import PrimeraClase
 
 class PrimeraClaseRepository:
     def __init__(self):
+        # Composición: El repositorio instancia su propia conexión
         self.db = Database()
 
-    # 1. Listar solo activos
     def obtener_todos(self):
         conn = self.db.get_connection()
-        if not conn:
-            return []
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM primeraClaseXGrupo WHERE estado = TRUE ORDER BY id_clase_grupo ASC;")
-        horarios = cursor.fetchall()
-        cursor.close()
+        cursor.execute("SELECT * FROM primeraclasexgrupo WHERE estado = true ORDER BY grado, grupo, jornada;")
+        clases = cursor.fetchall()
         conn.close()
-        return horarios
+        return clases
 
-    # 2. Obtener por ID
-    def obtener_por_id(self, id_clase_grupo: int):
+    def obtener_por_id(self, clase_id: int):
         conn = self.db.get_connection()
-        if not conn:
-            return None
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM primeraClaseXGrupo WHERE id_clase_grupo = %s AND estado = TRUE;", (id_clase_grupo,))
-        horario = cursor.fetchone()
-        cursor.close()
+        cursor.execute("SELECT * FROM primeraclasexgrupo WHERE id_clase_grupo = %s AND estado = true;", (clase_id,))
+        clase = cursor.fetchone()
         conn.close()
-        return horario
+        return clase
 
-    # 3. Crear horario por grupo
-    def crear(self, horario: PrimeraClaseCrear):
+    def crear(self, clase: PrimeraClase):
         conn = self.db.get_connection()
         cursor = conn.cursor()
         query = """
-            INSERT INTO primeraClaseXGrupo (grado, grupo, jornada, hora_inicio_timbre, hora_cierre_porton, tolerancia_minutos)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO primeraclasexgrupo (grado, grupo, jornada, hora_inicio_timbre, hora_cierre_porton, tolerancia_minutos, id_curso)
+            VALUES (%s, %s, %s, %s, %s, %s,
+                    (SELECT id_curso FROM cursos WHERE grado = %s AND grupo = %s AND jornada = %s LIMIT 1))
             RETURNING id_clase_grupo;
         """
         cursor.execute(query, (
-            horario.grado,
-            horario.grupo,
-            horario.jornada,
-            horario.hora_inicio_timbre,
-            horario.hora_cierre_porton,
-            horario.tolerancia_minutos
+            clase.grado, clase.grupo, clase.jornada,
+            clase.hora_inicio_timbre, clase.hora_cierre_porton, clase.tolerancia_minutos,
+            clase.grado, clase.grupo, clase.jornada
         ))
         nuevo_id = cursor.fetchone()['id_clase_grupo']
         conn.commit()
-        cursor.close()
         conn.close()
         return nuevo_id
 
-    # 4. Actualizar horario
-    def actualizar(self, id_clase_grupo: int, horario: PrimeraClaseCrear):
+    def actualizar(self, clase_id: int, clase: PrimeraClase):
         conn = self.db.get_connection()
         cursor = conn.cursor()
         query = """
-            UPDATE primeraClaseXGrupo
-            SET grado = %s, grupo = %s, jornada = %s, hora_inicio_timbre = %s, hora_cierre_porton = %s, tolerancia_minutos = %s
-            WHERE id_clase_grupo = %s AND estado = TRUE
+            UPDATE primeraclasexgrupo
+            SET grado = %s, grupo = %s, jornada = %s, hora_inicio_timbre = %s, hora_cierre_porton = %s,
+                tolerancia_minutos = %s,
+                id_curso = (SELECT id_curso FROM cursos WHERE grado = %s AND grupo = %s AND jornada = %s LIMIT 1),
+                actualizado = CURRENT_TIMESTAMP
+            WHERE id_clase_grupo = %s AND estado = true
             RETURNING id_clase_grupo;
         """
         cursor.execute(query, (
-            horario.grado,
-            horario.grupo,
-            horario.jornada,
-            horario.hora_inicio_timbre,
-            horario.hora_cierre_porton,
-            horario.tolerancia_minutos,
-            id_clase_grupo
+            clase.grado, clase.grupo, clase.jornada, clase.hora_inicio_timbre,
+            clase.hora_cierre_porton, clase.tolerancia_minutos,
+            clase.grado, clase.grupo, clase.jornada, clase_id
         ))
         actualizado = cursor.fetchone()
         conn.commit()
-        cursor.close()
         conn.close()
         return actualizado is not None
 
-
-    def eliminar_logico(self, id_clase_grupo: int):
+    def eliminar(self, clase_id: int):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        query = """
-            UPDATE primeraClaseXGrupo
-            SET estado = FALSE
-            WHERE id_clase_grupo = %s AND estado = TRUE
-            RETURNING id_clase_grupo;
-        """
-        cursor.execute(query, (id_clase_grupo,))
+        cursor.execute("UPDATE primeraclasexgrupo SET estado = false, actualizado = CURRENT_TIMESTAMP WHERE id_clase_grupo = %s AND estado = true RETURNING id_clase_grupo;", (clase_id,))
         eliminado = cursor.fetchone()
         conn.commit()
-        cursor.close()
         conn.close()
         return eliminado is not None

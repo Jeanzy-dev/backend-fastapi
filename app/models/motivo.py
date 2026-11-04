@@ -1,15 +1,8 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class MotivoBase(BaseModel):
+class MotivoTardanza(BaseModel):
+    id_motivo: Optional[int] = None
     descripcion: str
-    es_justificable: bool = False
-
-class MotivoCrear(MotivoBase):
-    pass
-
-class MotivoRespuesta(MotivoBase):
-    id_motivo: int
-    estado: bool
-
-    class Config:
-        from_attributes = True
+    es_justificable: Optional[bool] = False
+    estado: Optional[bool] = True

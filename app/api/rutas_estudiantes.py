@@ -1,37 +1,37 @@
-from fastapi import APIRouter, HTTPException, status
-from typing import List
-from app.models.estudiante import EstudianteCrear, EstudianteRespuesta
+from fastapi import APIRouter, HTTPException
+from app.models.estudiante import Estudiante
 from app.repositories.estudiante_repo import EstudianteRepository
 
-router = APIRouter(prefix="/estudiantes", tags=["Gestión de Estudiantes"])
+router = APIRouter(prefix="/api/estudiantes", tags=["Gestión de Estudiantes"])
 repo = EstudianteRepository()
 
-@router.get("/", response_model=List[EstudianteRespuesta], summary="Listar estudiantes activos")
-def listar_estudiantes():
+@router.get("/")
+def listar():
     return repo.obtener_todos()
 
-@router.get("/{id_estudiante}", response_model=EstudianteRespuesta, summary="Obtener estudiante por ID")
-def obtener_estudiante(id_estudiante: int):
-    estudiante = repo.obtener_por_id(id_estudiante)
+@router.get("/{estudiante_id}")
+def obtener(estudiante_id: int):
+    estudiante = repo.obtener_por_id(estudiante_id)
     if not estudiante:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Estudiante no encontrado o inactivo")
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado")
     return estudiante
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="Crear estudiante")
-def crear_estudiante(estudiante: EstudianteCrear):
+@router.post("/")
+def crear(estudiante: Estudiante):
     nuevo_id = repo.crear(estudiante)
-    return {"mensaje": "Estudiante registrado exitosamente", "id_estudiante": nuevo_id}
+    return {"mensaje": "Estudiante registrado exitosamente", "id": nuevo_id}
 
-@router.put("/{id_estudiante}", summary="Actualizar estudiante")
-def actualizar_estudiante(id_estudiante: int, estudiante: EstudianteCrear):
-    exito = repo.actualizar(id_estudiante, estudiante)
+@router.put("/{estudiante_id}")
+def actualizar(estudiante_id: int, estudiante: Estudiante):
+    exito = repo.actualizar(estudiante_id, estudiante)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Estudiante no encontrado o inactivo")
-    return {"mensaje": "Estudiante actualizado exitosamente"}
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado")
+    return {"mensaje": "Estudiante actualizado correctamente"}
 
-@router.delete("/{id_estudiante}", summary="Eliminar estudiante (Lógico)")
-def eliminar_estudiante(id_estudiante: int):
-    exito = repo.eliminar_logico(id_estudiante)
+@router.delete("/{estudiante_id}")
+def eliminar(estudiante_id: int):
+    # Borrado lógico: el registro queda con estado = false
+    exito = repo.eliminar(estudiante_id)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Estudiante no encontrado o ya inactivo")
-    return {"mensaje": f"Estudiante con id {id_estudiante} desactivado exitosamente (Soft Delete)"}
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado")
+    return {"mensaje": "Estudiante eliminado correctamente"}

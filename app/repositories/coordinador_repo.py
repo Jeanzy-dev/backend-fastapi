@@ -8,7 +8,11 @@ class CoordinadorRepository:
     def obtener_todos(self):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM coordinador WHERE estado = true ORDER BY id_coordinador ASC;")
+        cursor.execute("""
+            SELECT c.*, u.nombre_completo, u.correo
+            FROM coordinador c JOIN usuario u ON u.id_usuario = c.id_usuario
+            WHERE c.estado = true ORDER BY u.nombre_completo;
+        """)
         registros = cursor.fetchall()
         conn.close()
         return registros
@@ -25,8 +29,8 @@ class CoordinadorRepository:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         query = """
-            INSERT INTO coordinador (id_usuario, jornada_asignada, telefono_oficina, estado, creado, actualizado) 
-            VALUES (%s, %s, %s, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id_coordinador;
+            INSERT INTO coordinador (id_usuario, jornada_asignada, telefono_oficina)
+            VALUES (%s, %s, %s) RETURNING id_coordinador;
         """
         cursor.execute(query, (registro.id_usuario, registro.jornada_asignada, registro.telefono_oficina))
         nuevo_id = cursor.fetchone()['id_coordinador']
@@ -52,7 +56,7 @@ class CoordinadorRepository:
     def eliminar(self, id_coordinador: int):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE coordinador SET estado = false, actualizado = CURRENT_TIMESTAMP WHERE id_coordinador = %s RETURNING id_coordinador;", (id_coordinador,))
+        cursor.execute("UPDATE coordinador SET estado = false, actualizado = CURRENT_TIMESTAMP WHERE id_coordinador = %s AND estado = true RETURNING id_coordinador;", (id_coordinador,))
         eliminado = cursor.fetchone()
         conn.commit()
         conn.close()

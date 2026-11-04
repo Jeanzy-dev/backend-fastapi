@@ -1,37 +1,37 @@
-from fastapi import APIRouter, HTTPException, status
-from typing import List
-from app.models.perfil import PerfilCrear, PerfilRespuesta
+from fastapi import APIRouter, HTTPException
+from app.models.perfil import Perfil
 from app.repositories.perfil_repo import PerfilRepository
 
-router = APIRouter(prefix="/perfiles", tags=["Gestión de Perfiles"])
+router = APIRouter(prefix="/api/perfiles", tags=["Gestión de Perfiles"])
 repo = PerfilRepository()
 
-@router.get("/", response_model=List[PerfilRespuesta], summary="Listar perfiles activos")
-def listar_perfiles():
+@router.get("/")
+def listar():
     return repo.obtener_todos()
 
-@router.get("/{id_perfil}", response_model=PerfilRespuesta, summary="Obtener perfil por ID")
-def obtener_perfil(id_perfil: int):
-    perfil = repo.obtener_por_id(id_perfil)
+@router.get("/{perfil_id}")
+def obtener(perfil_id: int):
+    perfil = repo.obtener_por_id(perfil_id)
     if not perfil:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Perfil no encontrado")
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
     return perfil
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="Crear nuevo perfil")
-def crear_perfil(perfil: PerfilCrear):
+@router.post("/")
+def crear(perfil: Perfil):
     nuevo_id = repo.crear(perfil)
-    return {"mensaje": "Perfil creado con éxito", "id_perfil": nuevo_id}
+    return {"mensaje": "Perfil registrado exitosamente", "id": nuevo_id}
 
-@router.put("/{id_perfil}", summary="Actualizar perfil")
-def actualizar_perfil(id_perfil: int, perfil: PerfilCrear):
-    exito = repo.actualizar(id_perfil, perfil)
+@router.put("/{perfil_id}")
+def actualizar(perfil_id: int, perfil: Perfil):
+    exito = repo.actualizar(perfil_id, perfil)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Perfil no encontrado o inactivo")
-    return {"mensaje": "Perfil actualizado con éxito"}
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
+    return {"mensaje": "Perfil actualizado correctamente"}
 
-@router.delete("/{id_perfil}", summary="Eliminar perfil (Lógico)")
-def eliminar_perfil(id_perfil: int):
-    exito = repo.eliminar_logico(id_perfil)
+@router.delete("/{perfil_id}")
+def eliminar(perfil_id: int):
+    # Borrado lógico: el registro queda con estado = false
+    exito = repo.eliminar(perfil_id)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Perfil no encontrado o ya inactivo")
-    return {"mensaje": f"Perfil con id {id_perfil} desactivado exitosamente (Soft Delete)"}
+        raise HTTPException(status_code=404, detail="Perfil no encontrado")
+    return {"mensaje": "Perfil eliminado correctamente"}

@@ -1,36 +1,37 @@
 from fastapi import APIRouter, HTTPException
-from app.models.registronotificacion import RegistroNotificaciones
-from app.repositories.registronotificaciones import RegistroNotificacionRepository
+from app.models.notificacion import RegistroNotificaciones
+from app.repositories.notificacion_repo import RegistroNotificacionRepository
 
-router = APIRouter(prefix="/notificaciones", tags=["Gestión de Registro de Notificaciones"])
+router = APIRouter(prefix="/api/notificaciones", tags=["Gestión de Registro de Notificaciones"])
 repo = RegistroNotificacionRepository()
 
 @router.get("/")
-def listar_notificaciones():
+def listar():
     return repo.obtener_todos()
 
 @router.get("/{id_notificacion}")
-def obtener_notificacion(id_notificacion: int):
-    registro = repo.obtener_por_id(id_notificacion)
-    if not registro:
-        raise HTTPException(status_code=404, detail="Eche, esa notificación no se encuentra o fue eliminada")
-    return registro
+def obtener(id_notificacion: int):
+    notificacion = repo.obtener_por_id(id_notificacion)
+    if not notificacion:
+        raise HTTPException(status_code=404, detail="Notificación no encontrada")
+    return notificacion
 
 @router.post("/")
-def crear_notificacion(registro: RegistroNotificaciones):
-    nuevo_id = repo.crear(registro)
-    return {"mensaje": "Notificación creada bacanísimo", "id": nuevo_id}
+def crear(notificacion: RegistroNotificaciones):
+    nuevo_id = repo.crear(notificacion)
+    return {"mensaje": "Notificación registrada exitosamente", "id": nuevo_id}
 
 @router.put("/{id_notificacion}")
-def actualizar_notificacion(id_notificacion: int, registro: RegistroNotificaciones):
-    exito = repo.actualizar(id_notificacion, registro)
+def actualizar(id_notificacion: int, notificacion: RegistroNotificaciones):
+    exito = repo.actualizar(id_notificacion, notificacion)
     if not exito:
-        raise HTTPException(status_code=404, detail="Registro de notificación no encontrado pa' actualizar")
-    return {"mensaje": "Notificación actualizada firme"}
+        raise HTTPException(status_code=404, detail="Notificación no encontrada")
+    return {"mensaje": "Notificación actualizada correctamente"}
 
 @router.delete("/{id_notificacion}")
-def eliminar_notificacion(id_notificacion: int):
+def eliminar(id_notificacion: int):
+    # Borrado lógico: el registro queda con estado = false
     exito = repo.eliminar(id_notificacion)
     if not exito:
-        raise HTTPException(status_code=404, detail="No se pudo eliminar, el man no existe")
-    return {"mensaje": "Notificación inactivada (borrado lógico aplicado del putas)"}
+        raise HTTPException(status_code=404, detail="Notificación no encontrada")
+    return {"mensaje": "Notificación eliminada correctamente"}

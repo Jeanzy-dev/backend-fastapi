@@ -1,36 +1,41 @@
 from fastapi import APIRouter, HTTPException
 from app.models.moduloxrol import ModuloxRol
-from app.repositories.moduloxrol import ModuloxRolRepository
+from app.repositories.moduloxrol_repo import ModuloxRolRepository
 
-router = APIRouter(prefix="/moduloxrol", tags=["Gestión de Módulo x Rol"])
+router = APIRouter(prefix="/api/moduloxrol", tags=["Gestión de Módulo x Rol"])
 repo = ModuloxRolRepository()
 
 @router.get("/")
-def listar_modulos_rol():
+def listar():
     return repo.obtener_todos()
 
+@router.get("/perfil/{id_perfil}")
+def modulos_del_perfil(id_perfil: int):
+    # El frontend arma el menú con esta respuesta (tabla moduloxrol)
+    return repo.obtener_por_perfil(id_perfil)
+
 @router.get("/{id_registro}")
-def obtener_modulo_rol(id_registro: int):
+def obtener(id_registro: int):
     registro = repo.obtener_por_id(id_registro)
     if not registro:
-        raise HTTPException(status_code=404, detail="Eche, ese registro no existe o fue eliminado")
+        raise HTTPException(status_code=404, detail="Registro no encontrado")
     return registro
 
 @router.post("/")
-def crear_modulo_rol(registro: ModuloxRol):
+def crear(registro: ModuloxRol):
     nuevo_id = repo.crear(registro)
-    return {"mensaje": "Módulo por rol creado full HD", "id": nuevo_id}
+    return {"mensaje": "Módulo asignado al perfil", "id": nuevo_id}
 
 @router.put("/{id_registro}")
-def actualizar_modulo_rol(id_registro: int, registro: ModuloxRol):
+def actualizar(id_registro: int, registro: ModuloxRol):
     exito = repo.actualizar(id_registro, registro)
     if not exito:
-        raise HTTPException(status_code=404, detail="Registro no encontrado para actualizar")
-    return {"mensaje": "Módulo por rol actualizado bacano"}
+        raise HTTPException(status_code=404, detail="Registro no encontrado")
+    return {"mensaje": "Asignación actualizada"}
 
 @router.delete("/{id_registro}")
-def eliminar_modulo_rol(id_registro: int):
+def eliminar(id_registro: int):
     exito = repo.eliminar(id_registro)
     if not exito:
-        raise HTTPException(status_code=404, detail="No se pudo eliminar, el man no existe")
-    return {"mensaje": "Registro inactivado (borrado lógico aplicado)"}
+        raise HTTPException(status_code=404, detail="Registro no encontrado")
+    return {"mensaje": "Asignación eliminada"}

@@ -1,16 +1,9 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class CursoBase(BaseModel):
+class Curso(BaseModel):
+    id_curso: Optional[int] = None
     grado: int
     grupo: str
     jornada: str
-
-class CursoCrear(CursoBase):
-    pass
-
-class CursoRespuesta(CursoBase):
-    id_curso: int
-    estado: bool
-
-    class Config:
-        from_attributes = True
+    estado: Optional[bool] = True

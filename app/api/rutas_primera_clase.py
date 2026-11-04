@@ -1,37 +1,37 @@
-from fastapi import APIRouter, HTTPException, status
-from typing import List
-from app.models.primera_clase import PrimeraClaseCrear, PrimeraClaseRespuesta
+from fastapi import APIRouter, HTTPException
+from app.models.primera_clase import PrimeraClase
 from app.repositories.primera_clase_repo import PrimeraClaseRepository
 
-router = APIRouter(prefix="/horarios-grupos", tags=["Gestión de Horarios por Grupo (Primera Clase)"])
+router = APIRouter(prefix="/api/primera-clase", tags=["Gestión de Primera Clase"])
 repo = PrimeraClaseRepository()
 
-@router.get("/", response_model=List[PrimeraClaseRespuesta], summary="Listar horarios activos")
-def listar_horarios():
+@router.get("/")
+def listar():
     return repo.obtener_todos()
 
-@router.get("/{id_clase_grupo}", response_model=PrimeraClaseRespuesta, summary="Obtener horario por ID")
-def obtener_horario(id_clase_grupo: int):
-    horario = repo.obtener_por_id(id_clase_grupo)
-    if not horario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Horario no encontrado o inactivo")
-    return horario
+@router.get("/{clase_id}")
+def obtener(clase_id: int):
+    clase = repo.obtener_por_id(clase_id)
+    if not clase:
+        raise HTTPException(status_code=404, detail="Horario de primera clase no encontrado")
+    return clase
 
-@router.post("/", status_code=status.HTTP_201_CREATED, summary="Crear horario para grupo")
-def crear_horario(horario: PrimeraClaseCrear):
-    nuevo_id = repo.crear(horario)
-    return {"mensaje": "Horario registrado exitosamente", "id_clase_grupo": nuevo_id}
+@router.post("/")
+def crear(clase: PrimeraClase):
+    nuevo_id = repo.crear(clase)
+    return {"mensaje": "Horario de primera clase registrado exitosamente", "id": nuevo_id}
 
-@router.put("/{id_clase_grupo}", summary="Actualizar horario")
-def actualizar_horario(id_clase_grupo: int, horario: PrimeraClaseCrear):
-    exito = repo.actualizar(id_clase_grupo, horario)
+@router.put("/{clase_id}")
+def actualizar(clase_id: int, clase: PrimeraClase):
+    exito = repo.actualizar(clase_id, clase)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Horario no encontrado o inactivo")
-    return {"mensaje": "Horario actualizado exitosamente"}
+        raise HTTPException(status_code=404, detail="Horario de primera clase no encontrado")
+    return {"mensaje": "Horario de primera clase actualizado correctamente"}
 
-@router.delete("/{id_clase_grupo}", summary="Eliminar horario (Lógico)")
-def eliminar_horario(id_clase_grupo: int):
-    exito = repo.eliminar_logico(id_clase_grupo)
+@router.delete("/{clase_id}")
+def eliminar(clase_id: int):
+    # Borrado lógico: el registro queda con estado = false
+    exito = repo.eliminar(clase_id)
     if not exito:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Horario no encontrado o ya inactivo")
-    return {"mensaje": f"Horario con id {id_clase_grupo} desactivado exitosamente (Soft Delete)"}
+        raise HTTPException(status_code=404, detail="Horario de primera clase no encontrado")
+    return {"mensaje": "Horario de primera clase eliminado correctamente"}

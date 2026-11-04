@@ -1,93 +1,67 @@
 from app.core.database import Database
-from app.models.acudiente import AcudienteCrear
+from app.models.acudiente import Acudiente
 
 class AcudienteRepository:
     def __init__(self):
+        # Composición: El repositorio instancia su propia conexión
         self.db = Database()
 
-    # 1. Listar solo activos
     def obtener_todos(self):
         conn = self.db.get_connection()
-        if not conn:
-            return []
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM acudiente WHERE estado = TRUE ORDER BY id_acudiente ASC;")
+        cursor.execute("SELECT * FROM acudiente WHERE estado = true ORDER BY apellidos, nombres;")
         acudientes = cursor.fetchall()
-        cursor.close()
         conn.close()
         return acudientes
 
-    # 2. Obtener por ID
-    def obtener_por_id(self, id_acudiente: int):
+    def obtener_por_id(self, acudiente_id: int):
         conn = self.db.get_connection()
-        if not conn:
-            return None
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM acudiente WHERE id_acudiente = %s AND estado = TRUE;", (id_acudiente,))
+        cursor.execute("SELECT * FROM acudiente WHERE id_acudiente = %s AND estado = true;", (acudiente_id,))
         acudiente = cursor.fetchone()
-        cursor.close()
         conn.close()
         return acudiente
 
-    # 3. Crear acudiente
-    def crear(self, acudiente: AcudienteCrear):
+    def crear(self, acudiente: Acudiente):
         conn = self.db.get_connection()
         cursor = conn.cursor()
         query = """
             INSERT INTO acudiente (documento, nombres, apellidos, telefono, correo)
-            VALUES (%s, %s, %s, %s, %s)
-            RETURNING id_acudiente;
+            VALUES (%s, %s, %s, %s, %s) RETURNING id_acudiente;
         """
         cursor.execute(query, (
-            acudiente.documento,
-            acudiente.nombres,
-            acudiente.apellidos,
-            acudiente.telefono,
-            acudiente.correo
+            acudiente.documento, acudiente.nombres, acudiente.apellidos,
+            acudiente.telefono, acudiente.correo
         ))
         nuevo_id = cursor.fetchone()['id_acudiente']
         conn.commit()
-        cursor.close()
         conn.close()
         return nuevo_id
 
-    # 4. Actualizar acudiente
-    def actualizar(self, id_acudiente: int, acudiente: AcudienteCrear):
+    def actualizar(self, acudiente_id: int, acudiente: Acudiente):
         conn = self.db.get_connection()
         cursor = conn.cursor()
         query = """
             UPDATE acudiente
-            SET documento = %s, nombres = %s, apellidos = %s, telefono = %s, correo = %s
-            WHERE id_acudiente = %s AND estado = TRUE
+            SET documento = %s, nombres = %s, apellidos = %s, telefono = %s, correo = %s,
+                actualizado = CURRENT_TIMESTAMP
+            WHERE id_acudiente = %s AND estado = true
             RETURNING id_acudiente;
         """
         cursor.execute(query, (
-            acudiente.documento,
-            acudiente.nombres,
-            acudiente.apellidos,
-            acudiente.telefono,
-            acudiente.correo,
-            id_acudiente
+            acudiente.documento, acudiente.nombres, acudiente.apellidos,
+            acudiente.telefono, acudiente.correo, acudiente_id
         ))
         actualizado = cursor.fetchone()
         conn.commit()
-        cursor.close()
         conn.close()
         return actualizado is not None
 
-    # 5. Soft Delete
-    def eliminar_logico(self, id_acudiente: int):
+    def eliminar(self, acudiente_id: int):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        query = """
-            UPDATE acudiente
-            SET estado = FALSE
-            WHERE id_acudiente = %s AND estado = TRUE
-            RETURNING id_acudiente;
-        """
-        cursor.execute(query, (id_acudiente,))
+        cursor.execute("UPDATE acudiente SET estado = false, actualizado = CURRENT_TIMESTAMP WHERE id_acudiente = %s AND estado = true RETURNING id_acudiente;", (acudiente_id,))
         eliminado = cursor.fetchone()
         conn.commit()
-        cursor.close()
         conn.close()
         return eliminado is not None
