@@ -7,5 +7,5 @@ class RegistroNotificaciones(BaseModel):
     total_tardanzas: int
     correo_destinatario: str
     asunto: str
-    estado_envio: str
+    estado_envio: Optional[str] = "PENDIENTE"
     estado: Optional[bool] = True

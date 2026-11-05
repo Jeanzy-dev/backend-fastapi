@@ -9,4 +9,5 @@ class Estudiante(BaseModel):
     grado: int
     grupo: str
     jornada: str
+    id_curso: Optional[int] = None   # se resuelve solo a partir de grado/grupo/jornada
     estado: Optional[bool] = True

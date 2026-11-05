@@ -3,7 +3,5 @@ uvicorn
 pydantic
 psycopg2-binary
 python-dotenv
-passlib[bcrypt]
+bcrypt
 PyJWT
-mysql-connector-python
-pymysql

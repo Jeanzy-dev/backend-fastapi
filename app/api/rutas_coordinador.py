@@ -1,35 +1,36 @@
 from fastapi import APIRouter, HTTPException
 from app.models.coordinador import Coordinador
-from app.repositories.coordinador import CoordinadorRepository
+from app.repositories.coordinador_repo import CoordinadorRepository
 
-router = APIRouter(prefix="/coordinador", tags=["Gestión de Coordinadores"])
+router = APIRouter(prefix="/api/coordinador", tags=["Gestión de Coordinadores"])
 repo = CoordinadorRepository()
 
 @router.get("/")
-def listar_coordinadores():
+def listar():
     return repo.obtener_todos()
 
 @router.get("/{id_coordinador}")
-def obtener_coordinador(id_coordinador: int):
-    registro = repo.obtener_por_id(id_coordinador)
-    if not registro:
-        raise HTTPException(status_code=404, detail="El coordinador no se encuentra o ha sido eliminado")
-    return registro
+def obtener(id_coordinador: int):
+    coordinador = repo.obtener_por_id(id_coordinador)
+    if not coordinador:
+        raise HTTPException(status_code=404, detail="Coordinador no encontrado")
+    return coordinador
 
 @router.post("/")
-def crear_coordinador(registro: Coordinador):
-    nuevo_id = repo.crear(registro)
-    return {"mensaje": "Coordinador creado correctamente", "id": nuevo_id}
+def crear(coordinador: Coordinador):
+    nuevo_id = repo.crear(coordinador)
+    return {"mensaje": "Coordinador registrado exitosamente", "id": nuevo_id}
 
 @router.put("/{id_coordinador}")
-def actualizar_coordinador(id_coordinador: int, registro: Coordinador):
-    exito = repo.actualizar(id_coordinador, registro)
+def actualizar(id_coordinador: int, coordinador: Coordinador):
+    exito = repo.actualizar(id_coordinador, coordinador)
     if not exito:
-        raise HTTPException(status_code=404, detail="Coordinador no encontrado para actualizar")
+        raise HTTPException(status_code=404, detail="Coordinador no encontrado")
     return {"mensaje": "Coordinador actualizado correctamente"}
 
 @router.delete("/{id_coordinador}")
-def eliminar_coordinador(id_coordinador: int):
+def eliminar(id_coordinador: int):
+    # Borrado lógico: el registro queda con estado = false
     exito = repo.eliminar(id_coordinador)
     if not exito:
         raise HTTPException(status_code=404, detail="No se pudo eliminar, el coordinador no existe")

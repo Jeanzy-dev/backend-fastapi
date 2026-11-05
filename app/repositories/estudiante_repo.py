@@ -9,7 +9,15 @@ class EstudianteRepository:
     def obtener_todos(self):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM estudiantexcurso ORDER BY id_estudiante ASC;")
+        # Se agrega el total de tardanzas para que la coordinadora lo vea al buscar
+        cursor.execute("""
+            SELECT e.*,
+                   (SELECT COUNT(*) FROM asistenciaxestudiante a
+                     WHERE a.id_estudiante = e.id_estudiante AND a.estado = true) AS total_tardanzas
+            FROM estudiantexcurso e
+            WHERE e.estado = true
+            ORDER BY e.apellidos, e.nombres;
+        """)
         estudiantes = cursor.fetchall()
         conn.close()
         return estudiantes
@@ -17,7 +25,7 @@ class EstudianteRepository:
     def obtener_por_id(self, estudiante_id: int):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM estudiantexcurso WHERE id_estudiante = %s;", (estudiante_id,))
+        cursor.execute("SELECT * FROM estudiantexcurso WHERE id_estudiante = %s AND estado = true;", (estudiante_id,))
         estudiante = cursor.fetchone()
         conn.close()
         return estudiante
@@ -25,42 +33,49 @@ class EstudianteRepository:
     def crear(self, estudiante: Estudiante):
         conn = self.db.get_connection()
         cursor = conn.cursor()
+        # id_curso se busca automáticamente con grado, grupo y jornada
         query = """
-            INSERT INTO estudiantexcurso (documento, nombres, apellidos, grado, grupo, jornada, estado)
-            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id_estudiante;
+            INSERT INTO estudiantexcurso (documento, nombres, apellidos, grado, grupo, jornada, id_curso)
+            VALUES (%s, %s, %s, %s, %s, %s,
+                    (SELECT id_curso FROM cursos WHERE grado = %s AND grupo = %s AND jornada = %s LIMIT 1))
+            RETURNING id_estudiante;
         """
         cursor.execute(query, (
             estudiante.documento, estudiante.nombres, estudiante.apellidos,
-            estudiante.grado, estudiante.grupo, estudiante.jornada, estudiante.estado
+            estudiante.grado, estudiante.grupo, estudiante.jornada,
+            estudiante.grado, estudiante.grupo, estudiante.jornada
         ))
         nuevo_id = cursor.fetchone()['id_estudiante']
         conn.commit()
         conn.close()
         return nuevo_id
 
-    def eliminar(self, estudiante_id: int):
-        conn = self.db.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM estudiantexcurso WHERE id_estudiante = %s RETURNING id_estudiante;", (estudiante_id,))
-        eliminado = cursor.fetchone()
-        conn.commit()
-        conn.close()
-        return eliminado is not None
-
     def actualizar(self, estudiante_id: int, estudiante: Estudiante):
         conn = self.db.get_connection()
         cursor = conn.cursor()
         query = """
             UPDATE estudiantexcurso
-            SET documento = %s, nombres = %s, apellidos = %s, grado = %s, grupo = %s, jornada = %s, estado = %s
-            WHERE id_estudiante = %s
+            SET documento = %s, nombres = %s, apellidos = %s, grado = %s, grupo = %s, jornada = %s,
+                id_curso = (SELECT id_curso FROM cursos WHERE grado = %s AND grupo = %s AND jornada = %s LIMIT 1),
+                actualizado = CURRENT_TIMESTAMP
+            WHERE id_estudiante = %s AND estado = true
             RETURNING id_estudiante;
         """
         cursor.execute(query, (
             estudiante.documento, estudiante.nombres, estudiante.apellidos,
-            estudiante.grado, estudiante.grupo, estudiante.jornada, estudiante.estado, estudiante_id
+            estudiante.grado, estudiante.grupo, estudiante.jornada,
+            estudiante.grado, estudiante.grupo, estudiante.jornada, estudiante_id
         ))
         actualizado = cursor.fetchone()
         conn.commit()
         conn.close()
         return actualizado is not None
+
+    def eliminar(self, estudiante_id: int):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE estudiantexcurso SET estado = false, actualizado = CURRENT_TIMESTAMP WHERE id_estudiante = %s AND estado = true RETURNING id_estudiante;", (estudiante_id,))
+        eliminado = cursor.fetchone()
+        conn.commit()
+        conn.close()
+        return eliminado is not None

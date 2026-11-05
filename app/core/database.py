@@ -3,6 +3,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
+# Carga las variables del archivo .env al entorno de Python
 load_dotenv()
 
 class Database:
@@ -12,6 +13,8 @@ class Database:
         self.user = os.getenv("DB_USER")
         self.password = os.getenv("DB_PASSWORD")
         self.port = os.getenv("DB_PORT", "5432")
+        # Neon exige SSL ("require"). En PostgreSQL local se puede poner DB_SSLMODE=disable
+        self.sslmode = os.getenv("DB_SSLMODE", "require")
 
     def get_connection(self):
         try:
@@ -21,9 +24,9 @@ class Database:
                 user=self.user,
                 password=self.password,
                 port=self.port,
-                sslmode="require",
+                sslmode=self.sslmode,
                 cursor_factory=RealDictCursor
             )
         except Exception as e:
             print(f"Error de conexión a la BD: {e}")
-            return None
+            raise e

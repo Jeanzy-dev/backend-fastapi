@@ -6,5 +6,5 @@ class EstudXAcudiente(BaseModel):
     id_estudiante: int
     id_acudiente: int
     parentesco: str
-    es_principal: bool
+    es_principal: Optional[bool] = False
     estado: Optional[bool] = True

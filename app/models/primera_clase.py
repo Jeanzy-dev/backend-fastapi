@@ -9,5 +9,5 @@ class PrimeraClase(BaseModel):
     jornada: str
     hora_inicio_timbre: time
     hora_cierre_porton: time
-    tolerancia_minutos: Optional[int] = None
+    tolerancia_minutos: Optional[int] = 10
     estado: Optional[bool] = True

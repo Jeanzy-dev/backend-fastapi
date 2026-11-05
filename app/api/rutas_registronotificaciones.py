@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException
-from app.models.registronotificacion import RegistroNotificaciones
-from app.repositories.registronotificaciones import RegistroNotificacionRepository
+from app.models.notificacion import RegistroNotificaciones
+from app.repositories.notificacion_repo import RegistroNotificacionRepository
 
-router = APIRouter(prefix="/notificaciones", tags=["Gestión de Registro de Notificaciones"])
+router = APIRouter(prefix="/api/notificaciones", tags=["Gestión de Registro de Notificaciones"])
 repo = RegistroNotificacionRepository()
 
 @router.get("/")
-def listar_notificaciones():
+def listar():
     return repo.obtener_todos()
 
 @router.get("/{id_notificacion}")
@@ -22,14 +22,15 @@ def crear_notificacion(registro: RegistroNotificaciones):
     return {"mensaje": "Notificación creada", "id": nuevo_id}
 
 @router.put("/{id_notificacion}")
-def actualizar_notificacion(id_notificacion: int, registro: RegistroNotificaciones):
-    exito = repo.actualizar(id_notificacion, registro)
+def actualizar(id_notificacion: int, notificacion: RegistroNotificaciones):
+    exito = repo.actualizar(id_notificacion, notificacion)
     if not exito:
         raise HTTPException(status_code=404, detail="Registro de notificación no encontrado para actualizar")
     return {"mensaje": "Notificación actualizada"}
 
 @router.delete("/{id_notificacion}")
-def eliminar_notificacion(id_notificacion: int):
+def eliminar(id_notificacion: int):
+    # Borrado lógico: el registro queda con estado = false
     exito = repo.eliminar(id_notificacion)
     if not exito:
         raise HTTPException(status_code=404, detail="No se pudo eliminar, la notificación no existe")
